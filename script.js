@@ -6,7 +6,10 @@ const gridSize = 20; // Size of each grid cell
 const numRows = canvas.height / gridSize;
 const numCols = canvas.width / gridSize;
 
-let highscore = 0;
+let highscore = localStorage.getItem('highscore');
+if (highscore === null) {
+  highscore = 0;
+}
 
 class SnakeBody {
   constructor(x, y) {
@@ -73,8 +76,8 @@ class Trail {
 
   // Function to search for a value in the queue
   search(head) {
-    for (let i = 0; i < this.items.length; i++) {
-      if (this.items[i].x === head.x && this.items[i].y === head.y) {
+    for (let segment of this) {
+      if (segment.x == head.x && segment.y == head.y) {
         return true;
       }
     }
@@ -183,7 +186,6 @@ function draw() {
 
 function movePlayer() {
   if (paused) {
-    console.log("PAUSED");
     return;
   }
   updateVelocity(inputs.dequeue());
@@ -218,6 +220,7 @@ function movePlayer() {
 
 function resetGame() {
   highscore = Math.max(highscore, trail.length()-1);
+  localStorage.setItem('highscore', highscore);
   player = new Player();
   apple.move();
   trail = new Trail();
@@ -312,11 +315,5 @@ document.addEventListener('keydown', event => {
 
 // Set an interval for the movePlayer function (every 120ms)
 const intervalId = setInterval(movePlayer, 120);
-
-// To stop the interval after a certain duration (e.g., after 5 seconds)
-setTimeout(() => {
-  clearInterval(intervalId); // Stop the interval
-  console.log('Interval stopped.');
-}, 10000000); // milliseconds
 
 draw();
