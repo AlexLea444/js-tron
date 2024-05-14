@@ -18,10 +18,6 @@ class SnakeBody {
     this.color = 'green';
   }
 
-  position() {
-    return [this.x, this.y];
-  }
-
   // Copy constructor
   copy() {
     return new SnakeBody(this.x, this.y);
@@ -123,10 +119,6 @@ class Apple {
     this.y = Math.floor(Math.random() * numRows);
     this.move();
     this.color = 'red';
-  }
-
-  position() {
-    return [this.x, this.y];
   }
 
   move() {
