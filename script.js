@@ -313,6 +313,47 @@ document.addEventListener('keydown', event => {
   }
 });
 
+/* Determine inputs by swiping on mobile */
+let touchStartX = 0;
+let touchStartY = 0;
+
+window.addEventListener('touchstart', (event) => {
+  event.preventDefault();
+  const touch = event.touches[0];
+  touchStartX = touch.clientX;
+  touchStartY = touch.clientY;
+});
+
+window.addEventListener('touchend', (event) => {
+  event.preventDefault();
+  const touch = event.changedTouches[0];
+  const touchEndX = touch.clientX;
+  const touchEndY = touch.clientY;
+
+  const deltaX = touchEndX - touchStartX;
+  const deltaY = touchEndY - touchStartY;
+
+  if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < 30) {
+    return;
+  }
+
+  if (Math.abs(deltaX) > Math.abs(deltaY)) {
+    // Horizontal swipe
+    if (deltaX > 0) {
+      inputs.enqueue('right');
+    } else {
+      inputs.enqueue('left');
+    }
+  } else {
+    // Vertical swipe
+    if (deltaY > 0) {
+      inputs.enqueue('down');
+    } else {
+      inputs.enqueue('up');
+    }
+  }
+});
+
 // Set an interval for the movePlayer function (every 120ms)
 const intervalId = setInterval(movePlayer, 120);
 
