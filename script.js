@@ -362,7 +362,12 @@ window.addEventListener('touchend', (event) => {
 
 pauseButton.addEventListener('click', function() {
   togglePause();
-})
+});
+
+pauseButton.addEventListener('touchend', function() {
+  togglePause();
+});
+
 
 // Set an interval for the movePlayer function (every 120ms)
 const intervalId = setInterval(movePlayer, 120);
