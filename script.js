@@ -93,6 +93,9 @@ class InputsList {
 
   // Function to add element to the queue
   enqueue(element) {
+    if (paused) {
+      return;
+    }
     if (validInputs.indexOf(element) !== -1) {
       this.items.push(element);
     }
