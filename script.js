@@ -121,8 +121,16 @@ class Apple {
     this.color = 'red';
   }
 
+  position() {
+    return {x: this.x,
+            y: this.y,}
+  }
+
   move() {
-    while ((this.x === player.body.x && this.y === player.body.y) || trail.search(this)) {
+    console.log(`${this.x},${this.y} ${player.body.x},${player.body.y}`);
+    this.x = Math.floor(Math.random() * numCols);
+    this.y = Math.floor(Math.random() * numRows);
+    while (trail.search(this.position()) || (this.x == player.body.x && this.y == player.body.y)) {
       this.x = Math.floor(Math.random() * numCols);
       this.y = Math.floor(Math.random() * numRows);
     }
@@ -165,8 +173,8 @@ function draw() {
   drawGrid();
 
   // Draw player, apple, and obstacles
-  drawSquare(player.body);
   drawSquare(apple);
+  drawSquare(player.body);
 
   for (let segment of trail) {
     drawSquare(segment);
@@ -196,8 +204,6 @@ function movePlayer() {
 
     if (player.body.x === apple.x && player.body.y === apple.y) {
       apple.move();
-      apple.x = Math.floor(Math.random() * numCols);
-      apple.y = Math.floor(Math.random() * numRows);
     } else {
       trail.dequeue();
     }
@@ -253,9 +259,9 @@ function togglePause() {
 }
 
 window.addEventListener("keydown", function(e) {
-    if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(e.code) > -1) {
-        e.preventDefault();
-    }
+  if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(e.code) > -1) {
+    e.preventDefault();
+  }
 }, false);
 
 document.addEventListener('keydown', event => {
