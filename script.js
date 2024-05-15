@@ -336,7 +336,7 @@ window.addEventListener('touchend', (event) => {
   const deltaX = touchEndX - touchStartX;
   const deltaY = touchEndY - touchStartY;
 
-  if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < 100) {
+  if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < 30) {
     return;
   }
 
