@@ -256,10 +256,12 @@ function updateVelocity(direction) {
 function togglePause() {
   if (paused) {
     overlay.style.display = "none";
-    pauseButton.style.opacity = 1;
+    pauseButton.style.opacity = 0.5;
+    pauseButton.textContent = "PAUSE";
   } else {
     overlay.style.display = "flex";
-    pauseButton.style.opacity = 0.3;
+    pauseButton.style.opacity = 1;
+    pauseButton.textContent = "UNPAUSE";
   }
   paused = !paused;
 }
