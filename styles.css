@@ -1,3 +1,9 @@
+html, body {
+  overscroll-behavior: none;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: none;
+}
+
 body {
   margin: 0;
   display: flex;
