@@ -258,30 +258,32 @@ function togglePause() {
   paused = !paused;
 }
 
-window.addEventListener("keydown", function(e) {
-  if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(e.code) > -1) {
-    e.preventDefault();
-  }
-}, false);
-
+// Takes game inputs from the keyboard
+// Also prevents default actions for certain keys
 document.addEventListener('keydown', event => {
   switch (event.key) {
     case ' ':
+      event.preventDefault();
       togglePause();
       break;
     case 'Escape':
+      event.preventDefault();
       resetGame();
       break;
     case 'ArrowUp':
+      event.preventDefault();
       inputs.enqueue('up');
       break;
     case 'ArrowDown':
+      event.preventDefault();
       inputs.enqueue('down');
       break;
     case 'ArrowLeft':
+      event.preventDefault();
       inputs.enqueue('left');
       break;
     case 'ArrowRight':
+      event.preventDefault();
       inputs.enqueue('right');
       break;
     case 'k':
