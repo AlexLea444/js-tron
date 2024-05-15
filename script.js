@@ -354,6 +354,10 @@ window.addEventListener('touchend', (event) => {
   }
 });
 
+window.addEventListener('touchmove', (event) => {
+  event.preventDefault();
+});
+
 // Set an interval for the movePlayer function (every 120ms)
 const intervalId = setInterval(movePlayer, 120);
 
