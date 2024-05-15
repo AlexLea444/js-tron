@@ -1,6 +1,7 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const overlay = document.getElementById('overlay');
+const pauseButton = document.querySelector('.pauseButton')
 
 const gridSize = 20; // Size of each grid cell
 const numRows = canvas.height / gridSize;
@@ -252,8 +253,10 @@ function updateVelocity(direction) {
 function togglePause() {
   if (paused) {
     overlay.style.display = "none";
+    pauseButton.style.opacity = 1;
   } else {
     overlay.style.display = "flex";
+    pauseButton.style.opacity = 0.3;
   }
   paused = !paused;
 }
@@ -333,8 +336,8 @@ window.addEventListener('touchend', (event) => {
   const deltaX = touchEndX - touchStartX;
   const deltaY = touchEndY - touchStartY;
 
-  if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < 1000) {
-    togglePause();
+  if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < 100) {
+    return;
   }
 
   if (Math.abs(deltaX) > Math.abs(deltaY)) {
@@ -354,9 +357,9 @@ window.addEventListener('touchend', (event) => {
   }
 });
 
-window.addEventListener('touchmove', (event) => {
-  event.preventDefault();
-});
+pauseButton.addEventListener('click', function() {
+  togglePause();
+})
 
 // Set an interval for the movePlayer function (every 120ms)
 const intervalId = setInterval(movePlayer, 120);

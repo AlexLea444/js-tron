@@ -47,6 +47,7 @@ h1 {
   display: none;
   justify-content: center;
   align-items: center;
+  z-index: 2;
 }
 
 #score {
@@ -63,4 +64,21 @@ h1 {
   right: 10px;
   font-size: 18px;
   color: #333;
+}
+
+.pauseButton {
+  position: absolute;
+  bottom: 20px;
+  right: 10px;
+  background-color: rgba(0, 0, 0, 0.3); /* Semi-transparent black background */
+  color: #333;
+  border: none;
+  border-radius: 10px; /* Rounded edges */
+  padding: 10px 20px; /* Adjust padding as needed */
+  font-size: 18px;
+  z-index: 3;
+}
+
+.pauseButton:hover {
+  background-color: rgba(0, 0, 0, 0.5); /* Darker background on hover */
 }
