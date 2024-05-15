@@ -268,7 +268,7 @@ document.addEventListener('keydown', event => {
       break;
     case 'Escape':
       event.preventDefault();
-      resetGame();
+      togglePause();
       break;
     case 'ArrowUp':
       event.preventDefault();
@@ -334,7 +334,7 @@ window.addEventListener('touchend', (event) => {
   const deltaY = touchEndY - touchStartY;
 
   if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < 30) {
-    return;
+    togglePause();
   }
 
   if (Math.abs(deltaX) > Math.abs(deltaY)) {
