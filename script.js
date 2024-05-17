@@ -11,6 +11,7 @@ const gameInfo = document.getElementById('gameInfo');
 const gridInfo = document.getElementById('gridInfo');
 const finalScore = document.getElementById('finalScore');
 const startButton = document.getElementById('startButton');
+const shareButton = document.getElementById('shareButton');
 
 // Constants for grid size and dimensions
 const gridSize = 40; // Size of each grid cell
@@ -96,6 +97,7 @@ function updateGameState(newState) {
     switch (newState) {
         case GAME_STATE_START:
             infoOverlay.style.display = "flex";
+            shareButton.style.display = "none";
             gameInfo.innerHTML = "Ready to go?";
             gridInfo.innerHTML = "Swipe to change direction.";
             finalScore.textContent = `High Score: ${highscore}`;
@@ -131,6 +133,7 @@ function updateGameState(newState) {
             }
             gridInfo.innerHTML = gridToHTML();
             finalScore.textContent = `Final Score: ${score()}`;
+            shareButton.style.display = "inline-block";
             startButton.textContent = "Restart";
 
             break;
@@ -352,10 +355,7 @@ window.addEventListener('touchstart', (event) => {
     } else {
         pauseDetectionState = PAUSE_DETECTION_NOT_WAITING;
     }
-    /*if (!isInBounds(touchStartX, touchStartY, pauseButtonBounds)) {
-        pauseDetectionState = PAUSE_DETECTION_NOT_WAITING;
-    }*/
-});
+}, { passive: false });
 
 window.addEventListener('touchend', (event) => {
     event.preventDefault();
@@ -403,16 +403,6 @@ pauseButton.addEventListener('click', function() {
     togglePause();
 });
 
-/*pauseButton.addEventListener('touchstart', function() {
-    pauseDetectionState = PAUSE_DETECTION_WAITING;
-});
-
-pauseButton.addEventListener('touchend', function() {
-    if (pauseDetectionState === PAUSE_DETECTION_WAITING) {
-        togglePause();
-    }
-});*/
-
 startButton.addEventListener('click', function() {
     if (gameState === GAME_STATE_GAME_OVER) {
         resetGame();
@@ -426,3 +416,30 @@ startButton.addEventListener('touchend', function() {
     }
     updateGameState(GAME_STATE_RUNNING);
 });
+
+shareButton.addEventListener('click', function() {
+    if (gameState === GAME_STATE_GAME_OVER) {
+        const copyText = gridToHTML().replaceAll('<br>', '\n')
+                                     .replaceAll('&#129001;',"🟩")
+                                     .replaceAll('&#11036;', "⬜")
+                                     .replaceAll('&#127822;', "🍎")
+                                     .concat(`\nscore: ${score()}`);
+        console.log(copyText);
+
+        navigator.clipboard.writeText(copyText);
+
+        alert("Copied score to clipboard!")
+    }
+});
+
+shareButton.addEventListener('touchend', function() {
+    if (gameState === GAME_STATE_GAME_OVER) {
+        const copyText = gridToHTML().replace('<br>', '\n') + `\nscore: ${score()}`;
+        console.log(copyText);
+
+        navigator.clipboard.writeText(copyText);
+
+        alert("Copied score to clipboard!")
+    }
+});
+

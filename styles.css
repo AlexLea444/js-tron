@@ -105,12 +105,22 @@ h1 {
     font-size: 16px;
     padding: 0;
     margin: 0;
-    line-height: 1;
+    line-height: 1.05;
 }
 
 #finalScore {
     font-size: 16px;
     line-height: 1;
+}
+
+#buttonContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
 }
 
 #startButton {
@@ -125,4 +135,19 @@ h1 {
 
 #startButton:hover {
     background-color: #555;
+}
+
+#shareButton {
+    background-color: #444;
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    display: none;
+}
+
+#startButton:hover {
+    background-color: #666;
 }
