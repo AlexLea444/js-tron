@@ -167,9 +167,6 @@ function draw() {
     // Clear the gameCanvas
     ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
 
-    // Draw grid
-    drawGrid();
-
     // Draw player, apple, and obstacles
     drawSquare(apple);
     // drawSquare(player.body);
@@ -177,6 +174,9 @@ function draw() {
     for (let segment of trail) {
         drawSquare(segment);
     }
+
+    // Draw grid
+    drawGrid();
 
     document.getElementById('score').textContent = `Score: ${score()}`;
 }
