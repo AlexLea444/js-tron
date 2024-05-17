@@ -335,8 +335,10 @@ let mobile = false;
 // pause button. 
 const PAUSE_DETECTION_WAITING = 'waiting';
 const PAUSE_DETECTION_NOT_WAITING = 'not waiting';
-
 let pauseDetectionState = PAUSE_DETECTION_NOT_WAITING;
+
+// Track if touch started on pause button
+const pauseButtonBounds = pauseButton.getBoundingClientRect();
 
 window.addEventListener('touchstart', (event) => {
     event.preventDefault();
@@ -345,13 +347,14 @@ window.addEventListener('touchstart', (event) => {
     touchStartX = touch.clientX;
     touchStartY = touch.clientY;
 
-    // Track if touch started on pause button
-    const buttonBounds = pauseButton.getBoundingClientRect();
-    if (isInBounds(touchEndX, touchEndY, buttonBounds)) {
+    if (isInBounds(touchStartX, touchStartY, pauseButtonBounds)) {
         pauseDetectionState = PAUSE_DETECTION_WAITING;
     } else {
         pauseDetectionState = PAUSE_DETECTION_NOT_WAITING;
     }
+    /*if (!isInBounds(touchStartX, touchStartY, pauseButtonBounds)) {
+        pauseDetectionState = PAUSE_DETECTION_NOT_WAITING;
+    }*/
 });
 
 window.addEventListener('touchend', (event) => {
@@ -360,17 +363,14 @@ window.addEventListener('touchend', (event) => {
     const touchEndX = touch.clientX;
     const touchEndY = touch.clientY;
 
-    // Pause game if touch started and ended on pause button
-    const buttonBounds = pauseButton.getBoundingClientRect();
-
-    if (isInBounds(touchEndX, touchEndY, buttonBounds) && 
+    if (isInBounds(touchEndX, touchEndY, pauseButtonBounds) && 
         pauseDetectionState === PAUSE_DETECTION_WAITING) {
         togglePause();
     }
     
     // Reset variable to be reassigned on next pause touch
     pauseDetectionState = PAUSE_DETECTION_NOT_WAITING;
-  
+ 
     const deltaX = touchEndX - touchStartX;
     const deltaY = touchEndY - touchStartY;
   
@@ -402,6 +402,16 @@ function isInBounds(x, y, bounds) {
 pauseButton.addEventListener('click', function() {
     togglePause();
 });
+
+/*pauseButton.addEventListener('touchstart', function() {
+    pauseDetectionState = PAUSE_DETECTION_WAITING;
+});
+
+pauseButton.addEventListener('touchend', function() {
+    if (pauseDetectionState === PAUSE_DETECTION_WAITING) {
+        togglePause();
+    }
+});*/
 
 startButton.addEventListener('click', function() {
     if (gameState === GAME_STATE_GAME_OVER) {
