@@ -3,9 +3,9 @@
 by Alex Lea
 May 14, 2024
 
-This is a simple recreation of the classic game "Snake".
-The game is also an effective way to practice vim motions, as the snake
-can be controlled by H/J/K/L as well as the arrow keys or WASD.
+This is a recreation of the classic game "Snake". It is being updated to
+be played primarily on mobile, and is being moved toward the format of a
+daily game, where the final state of the game can be shared.
 
 The purpose of this project was to gain experience with HTML/CSS/JS, and
 to apply OOP knowledge primarily gained in C++ and Rust to JavaScript.
