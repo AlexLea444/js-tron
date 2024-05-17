@@ -150,7 +150,9 @@ function gridToHTML() {
     for (let i = 0; i < numCols; i++) {
         for (let j = 0; j < numRows; j++) {
             let location = {x: j, y: i,};
-            if (trail.search(location)) {
+            if (player.x === j && player.y === i) {
+                grid = grid.concat("&#128165;");
+            } else if (trail.search(location)) {
                 grid = grid.concat("&#129001;");
             } else if (apple.x === j && apple.y === i) {
                 grid = grid.concat("&#127822;");
@@ -229,6 +231,8 @@ function movePlayer() {
             trail.dequeue();
         }
     } else {
+        player.x -= player.dx;
+        player.y -= player.dy;
         collisionState = COLLISION_STATE_WALL;
     }
  
@@ -423,23 +427,25 @@ shareButton.addEventListener('click', function() {
                                      .replaceAll('&#129001;',"🟩")
                                      .replaceAll('&#11036;', "⬜")
                                      .replaceAll('&#127822;', "🍎")
+                                     .replaceAll('&#128165;', "💥")
                                      .concat(`\nscore: ${score()}`);
-        console.log(copyText);
-
         navigator.clipboard.writeText(copyText);
 
-        alert("Copied score to clipboard!")
+        alert("Copied score to clipboard!");
     }
 });
 
 shareButton.addEventListener('touchend', function() {
     if (gameState === GAME_STATE_GAME_OVER) {
-        const copyText = gridToHTML().replace('<br>', '\n') + `\nscore: ${score()}`;
-        console.log(copyText);
-
+        const copyText = gridToHTML().replaceAll('<br>', '\n')
+                                     .replaceAll('&#129001;',"🟩")
+                                     .replaceAll('&#11036;', "⬜")
+                                     .replaceAll('&#127822;', "🍎")
+                                     .replaceAll('&#128165;', "💥")
+                                     .concat(`\nscore: ${score()}`);
         navigator.clipboard.writeText(copyText);
 
-        alert("Copied score to clipboard!")
+        alert("Copied score to clipboard!");
     }
 });
 
