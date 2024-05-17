@@ -13,7 +13,7 @@ const finalScore = document.getElementById('finalScore');
 const startButton = document.getElementById('startButton');
 
 // Constants for grid size and dimensions
-const gridSize = 200; // Size of each grid cell
+const gridSize = 40; // Size of each grid cell
 const numRows = gameCanvas.height / gridSize;
 const numCols = gameCanvas.width / gridSize;
 const gridBounds = {
@@ -410,3 +410,9 @@ startButton.addEventListener('click', function() {
     updateGameState(GAME_STATE_RUNNING);
 });
 
+startButton.addEventListener('touchend', function() {
+    if (gameState === GAME_STATE_GAME_OVER) {
+        resetGame();
+    }
+    updateGameState(GAME_STATE_RUNNING);
+});
