@@ -1,20 +1,28 @@
-import Apple from './Apple.js';
-import {TrailSegment, Trail, Player} from './Trail.js';
+import {Trail, Player} from './Trail.js';
 
 // Get references to HTML elements
 const gameCanvas = document.getElementById('gameCanvas');
-const infoOverlay = document.getElementById('infoOverlay');
+
+if (!gameCanvas) {
+    throw new Error("Canvas element with ID 'gameCanvas' not found.");
+}
+
 const ctx = gameCanvas.getContext('2d');
+
+if (!ctx) {
+    throw new Error("Unable to get '2d' context from the canvas element.");
+}
+
+const infoOverlay = document.getElementById('infoOverlay');
 const pauseOverlay = document.getElementById('pauseOverlay');
 const pauseButton = document.querySelector('.pauseButton');
 const gameInfo = document.getElementById('gameInfo');
 const gridInfo = document.getElementById('gridInfo');
-const finalScore = document.getElementById('finalScore');
 const startButton = document.getElementById('startButton');
 const shareButton = document.getElementById('shareButton');
 
 // Constants for grid size and dimensions
-const gridSize = 40; // Size of each grid cell
+const gridSize = 10; // Size of each grid cell
 const numRows = gameCanvas.height / gridSize;
 const numCols = gameCanvas.width / gridSize;
 const gridBounds = {
@@ -24,17 +32,11 @@ const gridBounds = {
     bottom: numRows - 1,
 }
 
-// Load highscore from local storage
-let highscore = localStorage.getItem('highscore');
-if (highscore === null) {
-    highscore = 0;
-}
+const p1 = new Player(numCols / 4, numRows / 2, 1, "DarkGoldenRod", ctx, gridSize);
+const p2 = new Player(numCols * 3 / 4, numRows / 2, -1, "DarkBlue", ctx, gridSize);
 
-let player = new Player(numCols, numRows);
-
-let trail = new Trail(new TrailSegment(player.location()));
-
-let apple = new Apple(numCols, numRows);
+const p1_trail = new Trail(p1.location(), "GoldenRod", ctx, gridSize);
+const p2_trail = new Trail(p2.location(), "Blue", ctx, gridSize);
 
 let validInputs = ['up', 'down', 'left', 'right'];
 
@@ -71,7 +73,8 @@ class InputsList {
     }
 }
 
-let inputs = new InputsList();
+const p1_inputs = new InputsList();
+const p2_inputs = new InputsList();
 
 // Define constants for collision states
 const COLLISION_STATE_WALL = 'the wall';
@@ -88,7 +91,9 @@ let moveIntervalId;
 const GAME_STATE_START = 'start';
 const GAME_STATE_RUNNING = 'running';
 const GAME_STATE_PAUSED = 'paused';
-const GAME_STATE_GAME_OVER = 'game_over';
+const GAME_STATE_PLAYER1_WIN = 'player 1 wins!';
+const GAME_STATE_PLAYER2_WIN = 'player 2 wins!';
+const GAME_STATE_DRAW = 'it\'s a tie!';
 
 // Initialize the current game state
 let gameState; 
@@ -103,8 +108,7 @@ function updateGameState(newState) {
             infoOverlay.style.display = "flex";
             shareButton.style.display = "none";
             gameInfo.innerHTML = "Ready to go?";
-            gridInfo.innerHTML = "Swipe to change direction.";
-            finalScore.textContent = `High Score: ${highscore}`;
+            gridInfo.innerHTML = "Player 1 use WASD, Player 2 use arrows.";
             startButton.textContent = "Start";
             draw();
 
@@ -114,33 +118,35 @@ function updateGameState(newState) {
             pauseOverlay.style.display = "none";
             pauseButton.style.opacity = 0.5;
             pauseButton.textContent = "PAUSE";
-            // Set an interval for the movePlayer function (every 120ms)
-            moveIntervalId = setInterval(movePlayer, 170);
+            // Set an interval for the movePlayer function (in milliseconds)
+            moveIntervalId = setInterval(movePlayers, 60);
 
             break;
         case GAME_STATE_PAUSED:
             // Pause the movement of th
             clearInterval(moveIntervalId);
-            inputs.clear();
+            p1_inputs.clear();
+            p2_inputs.clear();
 
             pauseOverlay.style.display = "flex";
             pauseButton.style.opacity = 1;
             pauseButton.textContent = "UNPAUSE";
 
             break;
-        case GAME_STATE_GAME_OVER:
+        case GAME_STATE_PLAYER1_WIN:
+        case GAME_STATE_PLAYER2_WIN:
+        case GAME_STATE_DRAW:
             clearInterval(moveIntervalId);
             infoOverlay.style.display = "flex";
-            if (score() > highscore) {
-                gameInfo.innerHTML = `Game Over<br>New high score!`;
+            if (newState === GAME_STATE_PLAYER1_WIN) {
+                gameInfo.innerHTML = `Game Over<br>Player 1 wins!`;
+            } else if (newState === GAME_STATE_PLAYER2_WIN) {
+                gameInfo.innerHTML = `Game Over<br>Player 2 wins!`;
             } else {
-                gameInfo.innerHTML = `Game Over<br>You hit ${collisionState}`;
+                gameInfo.innerHTML = "Game Over<br>It's a draw!";
             }
-            gridInfo.innerHTML = gridToHTML();
-            finalScore.textContent = `Final Score: ${score()}`;
-            shareButton.style.display = "inline-block";
+            shareButton.style.display = "none";
             startButton.textContent = "Restart";
-
             break;
         default:
             // Handle unexpected state
@@ -150,45 +156,19 @@ function updateGameState(newState) {
     gameState = newState;
 }
 
-function gridToHTML() {
-    let grid = "";
-    for (let i = 0; i < numCols; i++) {
-        for (let j = 0; j < numRows; j++) {
-            let location = {x: j, y: i,};
-            if (player.x === j && player.y === i) {
-                grid = grid.concat("&#128165;");
-            } else if (trail.search(location)) {
-                grid = grid.concat("&#129001;");
-            } else if (apple.x === j && apple.y === i) {
-                grid = grid.concat("&#127822;");
-            } else {
-                grid = grid.concat("&#11036;")
-            }
-        }
-        grid = grid.concat("<br>");
-    }
-    return grid;
-}
-
 function draw() {
     // Clear the gameCanvas
     ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
 
-    // Draw apple
-    drawSquare(apple);
-
     // Draw grid
     drawGrid();
 
-    // Draw trail
-    drawTrail();
+    // Draw players and trails
+    p1_trail.draw(ctx, gridSize);
+    p2_trail.draw(ctx, gridSize);
 
-    document.getElementById('score').textContent = `Score: ${score()}`;
-}
-
-function drawSquare(square) {
-    ctx.fillStyle = square.color;
-    ctx.fillRect(square.x * gridSize, square.y * gridSize, gridSize, gridSize);
+    p1.draw(ctx, gridSize);
+    p2.draw(ctx, gridSize);
 }
 
 function drawGrid() {
@@ -210,136 +190,69 @@ function drawGrid() {
     ctx.stroke();
 }
 
-function drawTrail() {
-    // First, draw a dark square around every segment of the trail
-    ctx.beginPath();
-    ctx.strokeStyle = "#222";
+const CRASHED = 'crashed';
+const NOT_CRASHED = 'not crashed';
 
-    for (let segment of trail) {
-        drawSquare(segment);
+let p1_collisionState = NOT_CRASHED;
+let p2_collisionState = NOT_CRASHED;
 
-        ctx.moveTo(segment.x * gridSize, segment.y * gridSize);
+function movePlayers() {
+    p1_trail.enqueue(p1.location());
+    p2_trail.enqueue(p2.location());
 
-        ctx.lineTo((segment.x + 1) * gridSize, segment.y * gridSize);
-        ctx.lineTo((segment.x + 1) * gridSize, (segment.y + 1) * gridSize);
-        ctx.lineTo(segment.x * gridSize, (segment.y + 1) * gridSize);
-        ctx.lineTo(segment.x * gridSize, segment.y * gridSize);
+    p1.updateVelocity(p1_inputs.dequeue());
+    p2.updateVelocity(p2_inputs.dequeue());
 
+    p1.move();
+    p2.move();
+
+    // Check if the players have crashed into each other directly
+    if (p1.x === p2.x && p1.y === p2.y) {
+        p1_collisionState = CRASHED;
+        p2_collisionState = CRASHED;
     }
-    ctx.stroke();
 
-
-    // Then, go back in and remove the lines between snake segments
-    let prev = trail.last();
-
-    ctx.beginPath();
-    // Assume trail is all one color
-    ctx.strokeStyle = 'green';
-
-    for (const curr of trail) {
-        if (curr.x === prev.x - 1) {
-            // current segment is left of previous segment
-            ctx.moveTo((curr.x + 1) * gridSize, curr.y * gridSize + 1);
-            ctx.lineTo((curr.x + 1) * gridSize, (curr.y + 1) * gridSize - 1);
-            console.log("LEFT");
-        } else if (curr.x === prev.x + 1) {
-            // current segment is right of previous segment
-            ctx.moveTo(curr.x * gridSize, curr.y * gridSize + 1);
-            ctx.lineTo(curr.x * gridSize, (curr.y + 1) * gridSize - 1);
-            console.log("RIGHT");
-        } else if (curr.y === prev.y - 1) {
-            // current segment is on top of previous segment
-            ctx.moveTo(curr.x * gridSize + 1, (curr.y + 1) * gridSize);
-            ctx.lineTo((curr.x + 1) * gridSize - 1, (curr.y + 1) * gridSize);
-            console.log("UP");
-        } else if (curr.y === prev.y + 1) {
-            // current segment is below previous segment
-            ctx.moveTo(curr.x * gridSize + 1, curr.y * gridSize);
-            ctx.lineTo((curr.x + 1) * gridSize - 1, curr.y * gridSize);
-            console.log("DOWN");
-        }
-        prev = curr;
+    // Check if player 1 has gone out of bounds
+    if (!isInBounds(p1.location(), gridBounds)) {
+        p1_collisionState = CRASHED;
     }
-    ctx.stroke();
-}
 
-function movePlayer() {
-    updateVelocity(inputs.dequeue());
-  
-    player.x += player.dx;
-    player.y += player.dy;
-  
-    // Check if the new location is within bounds and not an obstacle
-    if (isInBounds(player.x, player.y, gridBounds)) {
-        if (trail.search(player.location())) {
-            // Check that collision is not caused by trail segment which is
-            // about to be dequeued
-            let trailEnd = trail.last();
-            console.log(`x: ${trailEnd.x}, y: ${trailEnd.y}`);
-            if (player.x !== trailEnd.x || player.y !== trailEnd.y) {
-                collisionState = COLLISION_STATE_TAIL;
-            }
-        }
-  
-        if (player.x === apple.x && player.y === apple.y) {
-            apple.moveNotTo(trail);
-        } else if (collisionState === COLLISION_STATE_NONE) {
-            trail.dequeue();
-        }
-    } else {
-        player.x -= player.dx;
-        player.y -= player.dy;
-        collisionState = COLLISION_STATE_WALL;
+    // Check if player 2 has gone out of bounds
+    if (!isInBounds(p2.location(), gridBounds)) {
+        p2_collisionState = CRASHED;
+    }
+
+    // Check if player 1 has crashed into a trail
+    if (p1_trail.contains(p1.location()) || p2_trail.contains(p1.location())) {
+        p1_collisionState = CRASHED;
+    }
+
+    // Check if player 2 has crashed into a trail
+    if (p1_trail.contains(p2.location()) || p2_trail.contains(p2.location())) {
+        p2_collisionState = CRASHED;
     }
  
-    if (collisionState === COLLISION_STATE_NONE) {
-        trail.enqueue(new TrailSegment(player.location()));
+    if (p1_collisionState === CRASHED && p2_collisionState === CRASHED) {
+        updateGameState(GAME_STATE_DRAW);
+    } else if (p1_collisionState === CRASHED) {
+        updateGameState(GAME_STATE_PLAYER2_WIN);
+    } else if (p2_collisionState === CRASHED) {
+        updateGameState(GAME_STATE_PLAYER1_WIN);
+    } else {
         draw();
-    } else {
-        updateGameState(GAME_STATE_GAME_OVER);
-    }
-}
-
-function score() {
-    if (trail.length() === (numCols * numRows - 1) && gameState === GAME_STATE_RUNNING) {
-        updateGameState(GAME_STATE_GAME_OVER);
-    } else {
-        return trail.length();
     }
 }
 
 function resetGame() {
-    collisionState = COLLISION_STATE_NONE;
-    highscore = Math.max(highscore, score());
-    localStorage.setItem('highscore', highscore);
-    player = new Player(numCols, numRows);
-    trail = new Trail(new TrailSegment(player.location()));
-    apple.moveNotTo(trail);
+    p1_collisionState = NOT_CRASHED;
+    p2_collisionState = NOT_CRASHED;
+    p1.reset();
+    p2.reset();
+    p1_trail.reset();
+    p2_trail.reset();
+    p1_inputs.clear();
+    p2_inputs.clear();
     draw();
-}
-
-function updateVelocity(direction) {
-    if (direction === 'up') {
-        if (player.dx !== 0) {
-            player.dy = -1;
-            player.dx = 0;
-        }
-    } else if (direction === 'down') {
-        if (player.dx !== 0) {
-            player.dy = 1;
-            player.dx = 0;
-        }
-    } else if (direction === 'left') {
-        if (player.dy !== 0) {
-            player.dx = -1;
-            player.dy = 0;
-        }
-    } else if (direction === 'right') {
-        if (player.dy !== 0) {
-            player.dx = 1;
-            player.dy = 0;
-        }
-    }
 }
 
 function togglePause() {
@@ -350,9 +263,7 @@ function togglePause() {
         case GAME_STATE_PAUSED:
             updateGameState(GAME_STATE_RUNNING);
             break;
-        case GAME_STATE_START:
-            break;
-        case GAME_STATE_GAME_OVER:
+        default:
             break;
     }
 }
@@ -361,101 +272,80 @@ function togglePause() {
 // Also prevents default actions for certain keys
 document.addEventListener('keydown', event => {
     switch (event.key) {
+        case 'Enter':
+            event.preventDefault();
+            switch (gameState) {
+                case GAME_STATE_PAUSED:
+                case GAME_STATE_RUNNING:
+                    togglePause();
+                    break;
+                case GAME_STATE_PLAYER1_WIN:
+                case GAME_STATE_PLAYER2_WIN:
+                case GAME_STATE_DRAW:
+                    resetGame();
+                default:
+                    updateGameState(GAME_STATE_RUNNING);
+                    break;
+            }
+            break;
         case ' ':
             event.preventDefault();
-            togglePause();
+            switch (gameState) {
+                case GAME_STATE_PAUSED:
+                case GAME_STATE_RUNNING:
+                    togglePause();
+                    break;
+                case GAME_STATE_PLAYER1_WIN:
+                case GAME_STATE_PLAYER2_WIN:
+                case GAME_STATE_DRAW:
+                    resetGame();
+                default:
+                    updateGameState(GAME_STATE_RUNNING);
+                    break;
+            }
             break;
         case 'Escape':
             event.preventDefault();
             togglePause();
             break;
+        case 'w':
+            event.preventDefault();
+            p1_inputs.enqueue('up');
+            break;
+        case 's':
+            event.preventDefault();
+            p1_inputs.enqueue('down');
+            break;
+        case 'a':
+            event.preventDefault();
+            p1_inputs.enqueue('left');
+            break;
+        case 'd':
+            event.preventDefault();
+            p1_inputs.enqueue('right');
+            break;
         case 'ArrowUp':
             event.preventDefault();
-            inputs.enqueue('up');
+            p2_inputs.enqueue('up');
             break;
         case 'ArrowDown':
             event.preventDefault();
-            inputs.enqueue('down');
+            p2_inputs.enqueue('down');
             break;
         case 'ArrowLeft':
             event.preventDefault();
-            inputs.enqueue('left');
+            p2_inputs.enqueue('left');
             break;
         case 'ArrowRight':
             event.preventDefault();
-            inputs.enqueue('right');
+            p2_inputs.enqueue('right');
             break;
     }
 });
 
-/* Determine inputs by swiping on mobile */
-let touchStartX = 0;
-let touchStartY = 0;
-let mobile = false;
-
-// To reduce the number of accidental pauses, we track the start and end
-// location of a touch, and only pause if the touch starts and ends on the
-// pause button. 
-const PAUSE_DETECTION_WAITING = 'waiting';
-const PAUSE_DETECTION_NOT_WAITING = 'not waiting';
-let pauseDetectionState = PAUSE_DETECTION_NOT_WAITING;
-
-// Track if touch started on pause button
-const pauseButtonBounds = pauseButton.getBoundingClientRect();
-
-window.addEventListener('touchstart', (event) => {
-    event.preventDefault();
-    mobile = true;
-    const touch = event.touches[0];
-    touchStartX = touch.clientX;
-    touchStartY = touch.clientY;
-
-    if (isInBounds(touchStartX, touchStartY, pauseButtonBounds)) {
-        pauseDetectionState = PAUSE_DETECTION_WAITING;
-    } else {
-        pauseDetectionState = PAUSE_DETECTION_NOT_WAITING;
-    }
-}, { passive: false });
-
-window.addEventListener('touchend', (event) => {
-    event.preventDefault();
-    const touch = event.changedTouches[0];
-    const touchEndX = touch.clientX;
-    const touchEndY = touch.clientY;
-
-    if (isInBounds(touchEndX, touchEndY, pauseButtonBounds) && 
-        pauseDetectionState === PAUSE_DETECTION_WAITING) {
-        togglePause();
-    }
-    
-    // Reset variable to be reassigned on next pause touch
-    pauseDetectionState = PAUSE_DETECTION_NOT_WAITING;
- 
-    const deltaX = touchEndX - touchStartX;
-    const deltaY = touchEndY - touchStartY;
-  
-    if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < 30) {
-        return;
-    }
-  
-    if (Math.abs(deltaX) > Math.abs(deltaY)) {
-    // Horizontal swipe
-        if (deltaX > 0) {
-            inputs.enqueue('right');
-        } else {
-            inputs.enqueue('left');
-        }
-    } else {
-    // Vertical swipe
-        if (deltaY > 0) {
-            inputs.enqueue('down');
-        } else {
-            inputs.enqueue('up');
-        }
-    }
-});
-
-function isInBounds(x, y, bounds) {
+function isInBounds(location, bounds) {
+    let x = location.x;
+    let y = location.y;
     return (x <= bounds.right && x >= bounds.left && y >= bounds.top && y <= bounds.bottom);
 }
 
@@ -464,44 +354,13 @@ pauseButton.addEventListener('click', function() {
 });
 
 startButton.addEventListener('click', function() {
-    if (gameState === GAME_STATE_GAME_OVER) {
-        resetGame();
+    switch (gameState) {
+        case GAME_STATE_PLAYER1_WIN:
+        case GAME_STATE_PLAYER2_WIN:
+        case GAME_STATE_DRAW:
+            resetGame();
+        default:
+            break;
     }
     updateGameState(GAME_STATE_RUNNING);
 });
-
-startButton.addEventListener('touchend', function() {
-    if (gameState === GAME_STATE_GAME_OVER) {
-        resetGame();
-    }
-    updateGameState(GAME_STATE_RUNNING);
-});
-
-shareButton.addEventListener('click', function() {
-    if (gameState === GAME_STATE_GAME_OVER) {
-        const copyText = gridToHTML().replaceAll('<br>', '\n')
-                                     .replaceAll('&#129001;',"🟩")
-                                     .replaceAll('&#11036;', "⬜")
-                                     .replaceAll('&#127822;', "🍎")
-                                     .replaceAll('&#128165;', "💥")
-                                     .concat(`\nscore: ${score()}`);
-        navigator.clipboard.writeText(copyText);
-
-        alert("Copied score to clipboard!");
-    }
-});
-
-shareButton.addEventListener('touchend', function() {
-    if (gameState === GAME_STATE_GAME_OVER) {
-        const copyText = gridToHTML().replaceAll('<br>', '\n')
-                                     .replaceAll('&#129001;',"🟩")
-                                     .replaceAll('&#11036;', "⬜")
-                                     .replaceAll('&#127822;', "🍎")
-                                     .replaceAll('&#128165;', "💥")
-                                     .concat(`\nscore: ${score()}`);
-        navigator.clipboard.writeText(copyText);
-
-        alert("Copied score to clipboard!");
-    }
-});
-

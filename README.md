@@ -1,14 +1,15 @@
-# Snake Game
+# Tron Game
 
 by Alex Lea
-May 14, 2024
+May 18, 2024
 
-This is a recreation of the classic game "Snake". It is being updated to
-be played primarily on mobile, and is being moved toward the format of a
-daily game, where the final state of the game can be shared.
+This is a recreation of the classic game "Tron", borrowed from code written
+for the game "Snake" (should be in another of my repositories).
 
-The purpose of this project was to gain experience with HTML/CSS/JS, and
-to apply OOP knowledge primarily gained in C++ and Rust to JavaScript.
+The purpose of this project was to improve upon the structure of the
+Snake game and more effectively utilize OOP to control player interactions
+easily. As with the Snake game, I gained more experience with HTML/CSS/JS
+and became more comfortable with web development and testing.
 
 Feel free to submit issues, give suggestions, or take for personal use.*
 
