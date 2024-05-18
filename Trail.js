@@ -14,6 +14,7 @@ class TrailSegment {
 class Trail {
     constructor(head) {
         this.items = new Array(head);
+        this.color = head.color;
     }
   
     // Function to add element to the queue
@@ -44,11 +45,16 @@ class Trail {
         return this.items.length;
     }
   
-    // Iterator implementation
+    // Simple iterator implementation
     *[Symbol.iterator]() {
         for (let item of this.items) {
             yield item;
         }
+    }
+
+    // Rust-style iterator (helpful for drawing trail)
+    iter() {
+        return new TrailIterator(this);
     }
   
     // Function to search for a value in the queue

@@ -42,6 +42,10 @@ class InputsList {
     constructor() {
         this.items = [];
     }
+
+    clear() {
+        this.items = [];
+    }
   
     // Function to add element to the queue
     enqueue(element) {
@@ -117,6 +121,7 @@ function updateGameState(newState) {
         case GAME_STATE_PAUSED:
             // Pause the movement of th
             clearInterval(moveIntervalId);
+            inputs.clear();
 
             pauseOverlay.style.display = "flex";
             pauseButton.style.opacity = 1;
@@ -169,16 +174,14 @@ function draw() {
     // Clear the gameCanvas
     ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
 
-    // Draw player, apple, and obstacles
+    // Draw apple
     drawSquare(apple);
-    // drawSquare(player.body);
-
-    for (let segment of trail) {
-        drawSquare(segment);
-    }
 
     // Draw grid
     drawGrid();
+
+    // Draw trail
+    drawTrail();
 
     document.getElementById('score').textContent = `Score: ${score()}`;
 }
@@ -204,6 +207,59 @@ function drawGrid() {
         ctx.lineTo(gameCanvas.width, j * gridSize);
     }
   
+    ctx.stroke();
+}
+
+function drawTrail() {
+    // First, draw a dark square around every segment of the trail
+    ctx.beginPath();
+    ctx.strokeStyle = "#222";
+
+    for (let segment of trail) {
+        drawSquare(segment);
+
+        ctx.moveTo(segment.x * gridSize, segment.y * gridSize);
+
+        ctx.lineTo((segment.x + 1) * gridSize, segment.y * gridSize);
+        ctx.lineTo((segment.x + 1) * gridSize, (segment.y + 1) * gridSize);
+        ctx.lineTo(segment.x * gridSize, (segment.y + 1) * gridSize);
+        ctx.lineTo(segment.x * gridSize, segment.y * gridSize);
+
+    }
+    ctx.stroke();
+
+
+    // Then, go back in and remove the lines between snake segments
+    let prev = trail.last();
+
+    ctx.beginPath();
+    // Assume trail is all one color
+    ctx.strokeStyle = 'green';
+
+    for (const curr of trail) {
+        if (curr.x === prev.x - 1) {
+            // current segment is left of previous segment
+            ctx.moveTo((curr.x + 1) * gridSize, curr.y * gridSize + 1);
+            ctx.lineTo((curr.x + 1) * gridSize, (curr.y + 1) * gridSize - 1);
+            console.log("LEFT");
+        } else if (curr.x === prev.x + 1) {
+            // current segment is right of previous segment
+            ctx.moveTo(curr.x * gridSize, curr.y * gridSize + 1);
+            ctx.lineTo(curr.x * gridSize, (curr.y + 1) * gridSize - 1);
+            console.log("RIGHT");
+        } else if (curr.y === prev.y - 1) {
+            // current segment is on top of previous segment
+            ctx.moveTo(curr.x * gridSize + 1, (curr.y + 1) * gridSize);
+            ctx.lineTo((curr.x + 1) * gridSize - 1, (curr.y + 1) * gridSize);
+            console.log("UP");
+        } else if (curr.y === prev.y + 1) {
+            // current segment is below previous segment
+            ctx.moveTo(curr.x * gridSize + 1, curr.y * gridSize);
+            ctx.lineTo((curr.x + 1) * gridSize - 1, curr.y * gridSize);
+            console.log("DOWN");
+        }
+        prev = curr;
+    }
     ctx.stroke();
 }
 
